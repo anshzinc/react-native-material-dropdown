@@ -28,6 +28,7 @@ export default class Dropdown extends PureComponent {
 
     valueExtractor: ({ value } = {}, index) => value,
     labelExtractor: ({ label } = {}, index) => label,
+    displayTextExtractor: ({ label, displayText } = {}, index) => displayText || label,
     propsExtractor: () => null,
 
     absoluteRTLLayout: false,
@@ -188,9 +189,33 @@ export default class Dropdown extends PureComponent {
     };
   }
 
-  componentWillReceiveProps({ value }) {
-    if (value !== this.props.value) {
-      this.setState({ value });
+  currentTitleExtractor(value) {
+    let index = this.selectedIndex();
+    let title;
+
+    if (~index) {
+      title = this.props.labelExtractor(this.props.data[index], index);
+    }
+
+    if (null == title) {
+      title = value;
+    }
+
+    title = null == title || 'string' === typeof title?
+      title:
+      String(title);
+
+    return title;
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.value !== this.props.value) {
+      const title = this.currentTitleExtractor(this.props.value)
+      this.txRef.current.setValue(title)
+      this.setState({ value: this.props.value })
+    } else if (prevState.value !== this.state.value) {
+      const title = this.currentTitleExtractor(this.state.value)
+      this.txRef.current.setValue(title)
     }
   }
 
@@ -354,7 +379,8 @@ export default class Dropdown extends PureComponent {
       onChangeText(value, index, data);
     }
 
-    setTimeout(() => this.onClose(value), delay);
+    const isItemDisabled = data[index].disabled;
+    setTimeout(() => this.onClose(!isItemDisabled ? value : undefined), delay);
   }
 
   onLayout(event) {
@@ -474,6 +500,8 @@ export default class Dropdown extends PureComponent {
     return `${index}-${valueExtractor(item, index)}`;
   }
 
+  txRef = React.createRef();
+
   renderBase(props) {
     let { value } = this.state;
     let {
@@ -484,27 +512,15 @@ export default class Dropdown extends PureComponent {
       renderAccessory = this.renderAccessory,
     } = this.props;
 
-    let index = this.selectedIndex();
-    let title;
-
-    if (~index) {
-      title = labelExtractor(data[index], index);
-    }
-
-    if (null == title) {
-      title = value;
-    }
+    const title = this.currentTitleExtractor(value)
 
     if ('function' === typeof renderBase) {
       return renderBase({ ...props, title, value, renderAccessory });
     }
 
-    title = null == title || 'string' === typeof title?
-      title:
-      String(title);
-
     return (
       <TextField
+        ref={this.txRef}
         label=''
         labelHeight={dropdownOffset.top - Platform.select({ ios: 1, android: 2 })}
 
@@ -513,7 +529,7 @@ export default class Dropdown extends PureComponent {
         value={title}
         editable={false}
         onChangeText={undefined}
-        renderAccessory={renderAccessory}
+        renderRightAccessory={renderAccessory}
       />
     );
   }
@@ -571,7 +587,7 @@ export default class Dropdown extends PureComponent {
 
     let {
       valueExtractor,
-      labelExtractor,
+      displayTextExtractor,
       propsExtractor,
       textColor,
       itemColor,
@@ -590,7 +606,7 @@ export default class Dropdown extends PureComponent {
     let { style, disabled }
       = props
       = {
-        rippleDuration,
+        rippleDuration: item.disabled ? 0 : rippleDuration,
         rippleOpacity,
         rippleColor: baseColor,
 
@@ -599,17 +615,18 @@ export default class Dropdown extends PureComponent {
 
         ...props,
 
-        onPress: this.onSelect,
+        onPress: item.disabled ? null : this.onSelect,
       };
 
     let value = valueExtractor(item, index);
-    let label = labelExtractor(item, index);
+    let displayText = displayTextExtractor(item, index);
+    const isItemDisabled = item.disabled
 
-    let title = null == label?
+    let title = null == displayText?
       value:
-      label;
+      displayText;
 
-    let color = disabled?
+    let color = isItemDisabled?
       disabledItemColor:
       ~selected?
         index === selected?
