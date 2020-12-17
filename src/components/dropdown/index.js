@@ -552,7 +552,7 @@ export default class Dropdown extends PureComponent {
       height: this.itemSize() - bottom,
       position: 'absolute',
     };
-    console.log('style ==>', style); // TODO: remove this
+
     return (
       <Ripple
         style={style}
@@ -741,10 +741,10 @@ export default class Dropdown extends PureComponent {
       accessible,
       accessibilityLabel,
     };
-    console.log('containerStyle ==>', containerStyle); // TODO: remove this
+
     return (
       <View onLayout={this.onLayout} ref={this.updateContainerRef} style={containerStyle} >
-        <TouchableWithoutFeedback {...touchableProps} style={{borderWidth: 1, borderColor: 'yellow'}}>
+        <TouchableWithoutFeedback {...touchableProps}>
           <View pointerEvents='box-only'>
             {this.renderBase(props)}
             {this.renderRipple()}
