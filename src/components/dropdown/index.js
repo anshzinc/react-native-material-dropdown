@@ -510,6 +510,9 @@ export default class Dropdown extends PureComponent {
       labelExtractor,
       dropdownOffset,
       renderAccessory = this.renderAccessory,
+      lineWidth,
+      disabledLineWidth,
+      hideIcon,
     } = this.props;
 
     const title = this.currentTitleExtractor(value)
@@ -526,11 +529,12 @@ export default class Dropdown extends PureComponent {
 
         {...props}
 
-        lineWidth={0}
+        lineWidth={lineWidth ?? 0}
+        disabledLineWidth={disabledLineWidth ?? lineWidth ?? 0}
         value={title}
         editable={false}
         onChangeText={undefined}
-        renderRightAccessory={renderAccessory}
+        renderRightAccessory={!hideIcon && renderAccessory}
       />
     );
   }
