@@ -219,6 +219,10 @@ export default class Dropdown extends PureComponent {
     }
   }
 
+  componentWillReceiveProps({ value }) {
+      this.setState({ value });
+  }
+
   componentDidMount() {
     this.mounted = true;
   }
